@@ -11,6 +11,6 @@ To use, create an ephemeral container with:
 docker run --rm --name maucktest_take1 --volume /tmp/blah/:/working:Z --volume /tmp/results:/results:Z jaybeeunix/mauck:latest /working/dash-0.5.9-5.fc28.src.rpm
 ```
 
-...where `/tmp/{results,working}` are locations the container user can write too
+...where `/tmp/{results,working}` are locations the container user can write to
 and the SRPM is in `/tmp/working`. The resulting RPMs will be in `/tmp/results`.
 
