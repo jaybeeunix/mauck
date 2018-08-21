@@ -12,5 +12,5 @@ docker run --rm --name maucktest_take1 --volume /tmp/blah/:/working:Z --volume /
 ```
 
 ...where `/tmp/{results,working}` are locations the container user can write too
-and the SRPM is in `/tmp/working`.
+and the SRPM is in `/tmp/working`. The resulting RPMs will be in `/tmp/results`.
 
