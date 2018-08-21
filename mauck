@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# mauck
+#
+# faux-mock using docker containers
+
+if [ $# -ne 1 ];
+then
+    echo "$0: ERROR: usage: $0 package.src.rpm" >&2
+    exit 1
+fi
+
+#TODO: add an srpm sanity check here
+
+# load up the build dependencies
+yum --assumeyes builddep "$1"
+
+#drop privs
+su --login "${MAUCK_USER}" /bin/sh -c "rpmbuild --define \"_rpmdir $MAUCK_RESULTS\" --define \"_srcrpmdir $MAUCK_RESULTS/SRPMS\" -ra \"$1\""
