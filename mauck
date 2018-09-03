@@ -3,17 +3,29 @@
 # mauck
 #
 # faux-mock using docker containers
+#
+# Copyright 2018 Jason Burrell
+
+# this is the flag to build all (srpm and rpm): assume the input is a .src.rpm
+BUILD_ALL="-ra"
 
 if [ $# -ne 1 ];
 then
-    echo "$0: ERROR: usage: $0 package.src.rpm" >&2
+    echo "$0: ERROR: usage: $0 package.{src.rpm,tar...}" >&2
     exit 1
 fi
 
-#TODO: add an srpm sanity check here
+# input file sanity check
+## rpmbuild can handle a number of different tar files, so just ask it to check
+rpmbuild -ts --nobuild "$1" &> /dev/null
+if [ $? -eq 0 ];
+then
+    # 'tis a tarish thing from which rpmbuild can figure out the spec
+    BUILD_ALL="-ta"
+fi
 
 # load up the build dependencies
 yum --assumeyes builddep "$1"
 
-#drop privs
-su --login "${MAUCK_USER}" /bin/sh -c "rpmbuild --define \"_rpmdir $MAUCK_RESULTS\" --define \"_srcrpmdir $MAUCK_RESULTS/SRPMS\" -ra \"$1\""
+# drop privs
+su --login "${MAUCK_USER}" /bin/sh -c "rpmbuild --define \"_rpmdir $MAUCK_RESULTS\" --define \"_srcrpmdir $MAUCK_RESULTS/SRPMS\" "$BUILD_ALL" \"$1\""
