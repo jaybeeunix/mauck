@@ -18,3 +18,5 @@ docker run --rm --name maucktest_take1 \
 ...where `/tmp/{results,working}` are locations the container user can write to
 and the SRPM is in `/tmp/working`. The resulting RPMs will be in `/tmp/results`.
 
+mauck can also handle tarballs with embedded .spec files (anything `rpmbuild` can handle with `-t...`).
+
