@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # mauck
 #
@@ -6,8 +6,8 @@
 #
 # Copyright 2018 Jason Burrell
 
-# this is the flag to build all (srpm and rpm): assume the input is a .src.rpm
-BUILD_ALL="-ra"
+SRPM="$1"
+RPMBUILD="rpmbuild --define \"_rpmdir $MAUCK_RESULTS\" --define \"_srcrpmdir $MAUCK_RESULTS/SRPMS\" "
 
 if [ $# -ne 1 ];
 then
@@ -16,16 +16,25 @@ then
 fi
 
 # input file sanity check
-## rpmbuild can handle a number of different tar files, so just ask it to check
-rpmbuild -ts --nobuild "$1" &> /dev/null
-if [ $? -eq 0 ];
-then
-    # 'tis a tarish thing from which rpmbuild can figure out the spec
-    BUILD_ALL="-ta"
-fi
+for STYLE in "-r" "-t";
+do
+    ## ask rpmbuild to check the input file
+    rpmbuild ${STYLE}s --nobuild "$1" &> /dev/null
+    if [ $? -eq 0 ];
+    then
+	BUILD_ALL="${STYLE}a"
+	if [ "$STYLE" = "-t" ];
+	then
+	    # we need to build the srpm first for builddep
+	    RPMB_OUTPUT=$(su --login "${MAUCK_USER}" /bin/sh -c "$RPMBUILD -ts \"$SRPM\"")
+	    SRPM="${RPMB_OUTPUT#*: }"
+	fi
+	break
+    fi
+done
 
 # load up the build dependencies
-yum --assumeyes builddep "$1"
+dnf --assumeyes builddep "$SRPM"
 
 # drop privs
-su --login "${MAUCK_USER}" /bin/sh -c "rpmbuild --define \"_rpmdir $MAUCK_RESULTS\" --define \"_srcrpmdir $MAUCK_RESULTS/SRPMS\" "$BUILD_ALL" \"$1\""
+su --login "${MAUCK_USER}" /bin/sh -c "$RPMBUILD $BUILD_ALL \"$1\""
